@@ -5,9 +5,12 @@ const MAX_MOUTH_SCALE_Y := 1.6
 const DEFAULT_HEAD_POSITION := Vector2(0.0, -80.0)
 const BEGGING_HEAD_POSITION := Vector2(0.0, -72.0)
 const IDLE_PULSE_PERIOD_MS := 450.0
+const IDLE_PULSE_AMPLITUDE := 0.01
 const MIN_BLINK_INTERVAL := 1.6
 const MAX_BLINK_INTERVAL := 3.3
+const BLINK_LERP_WEIGHT := 0.2
 const PUZZLED_TREMOR_DEGREES := 2.0
+const PUZZLED_TREMOR_SPEED := 12.0
 
 @onready var body: Node2D = $Body
 @onready var head: Node2D = $Head
@@ -45,7 +48,7 @@ func apply_avatar_payload(payload: Dictionary) -> void:
 
 func _process(delta: float) -> void:
     if current_emotion == "idle":
-        var pulse := 1.0 + 0.01 * sin(float(Time.get_ticks_msec()) / IDLE_PULSE_PERIOD_MS)
+        var pulse := 1.0 + IDLE_PULSE_AMPLITUDE * sin(float(Time.get_ticks_msec()) / IDLE_PULSE_PERIOD_MS)
         body.scale.y = pulse
         blink_timer -= delta
         if blink_timer <= 0.0:
@@ -53,10 +56,10 @@ func _process(delta: float) -> void:
             lower_eyelid_bone.rotation_degrees = -10.0
             blink_timer = randf_range(MIN_BLINK_INTERVAL, MAX_BLINK_INTERVAL)
         else:
-            upper_eyelid_bone.rotation_degrees = lerp(upper_eyelid_bone.rotation_degrees, 0.0, 0.2)
-            lower_eyelid_bone.rotation_degrees = lerp(lower_eyelid_bone.rotation_degrees, 0.0, 0.2)
+            upper_eyelid_bone.rotation_degrees = lerp(upper_eyelid_bone.rotation_degrees, 0.0, BLINK_LERP_WEIGHT)
+            lower_eyelid_bone.rotation_degrees = lerp(lower_eyelid_bone.rotation_degrees, 0.0, BLINK_LERP_WEIGHT)
     elif current_emotion == "puzzled":
-        puzzled_tremor_phase += delta * 12.0
+        puzzled_tremor_phase += delta * PUZZLED_TREMOR_SPEED
 
 func _apply_lip_sync(amplitude: float) -> void:
     mouth_polygon.scale.y = lerp(MIN_MOUTH_SCALE_Y, MAX_MOUTH_SCALE_Y, amplitude)

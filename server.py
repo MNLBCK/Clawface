@@ -90,6 +90,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
 
     try:
         while True:
+            # Broadcast-only stream: incoming client messages are intentionally ignored.
             await websocket.receive_text()
     except WebSocketDisconnect:
         with suppress(KeyError):
