@@ -2,6 +2,8 @@ extends Node2D
 
 const MIN_MOUTH_SCALE_Y := 0.7
 const MAX_MOUTH_SCALE_Y := 1.6
+const DEFAULT_HEAD_POSITION := Vector2(0.0, -80.0)
+const BEGGING_HEAD_POSITION := Vector2(0.0, -72.0)
 
 @onready var body: Node2D = $Body
 @onready var head: Node2D = $Head
@@ -16,9 +18,9 @@ var current_emotion := "idle"
 var blink_timer := 0.0
 
 func _ready() -> void:
-    _ensure_animation("idle", Vector2(1.0, 1.0), Vector2(0.0, -80.0), 0.0, 0.0, 0.0)
-    _ensure_animation("begging", Vector2(1.0, 1.0), Vector2(0.0, -72.0), 4.0, 8.0, -6.0)
-    _ensure_animation("puzzled", Vector2(1.0, 1.0), Vector2(0.0, -80.0), 0.0, -10.0, 7.0)
+    _ensure_animation("idle", Vector2(1.0, 1.0), DEFAULT_HEAD_POSITION, 0.0, 0.0, 0.0)
+    _ensure_animation("begging", Vector2(1.0, 1.0), BEGGING_HEAD_POSITION, 4.0, 8.0, -6.0)
+    _ensure_animation("puzzled", Vector2(1.0, 1.0), DEFAULT_HEAD_POSITION, 0.0, -10.0, 7.0)
     animation_player.play("idle")
 
 func apply_avatar_payload(payload: Dictionary) -> void:
@@ -56,7 +58,7 @@ func _apply_lip_sync(amplitude: float) -> void:
 
 func _apply_emotion_pose(emotion: String) -> void:
     body.scale = Vector2.ONE
-    head.position = Vector2(0.0, -80.0)
+    head.position = DEFAULT_HEAD_POSITION
     head.rotation_degrees = 0.0
     upper_eyelid_bone.rotation_degrees = 0.0
     lower_eyelid_bone.rotation_degrees = 0.0
@@ -65,15 +67,15 @@ func _apply_emotion_pose(emotion: String) -> void:
 
     match emotion:
         "begging":
-            head.position.y = -72.0
+            head.position = BEGGING_HEAD_POSITION
             head.rotation_degrees = 4.0
             upper_eyelid_bone.rotation_degrees = 8.0
             lower_eyelid_bone.rotation_degrees = -6.0
         "puzzled":
             upper_eyelid_bone.rotation_degrees = -10.0
             lower_eyelid_bone.rotation_degrees = 7.0
-            mouth_bone_left.rotation_degrees += randf_range(-2.0, 2.0)
-            mouth_bone_right.rotation_degrees += randf_range(-2.0, 2.0)
+            mouth_bone_left.rotation_degrees = randf_range(-2.0, 2.0)
+            mouth_bone_right.rotation_degrees = randf_range(-2.0, 2.0)
 
 func _ensure_animation(
     name: String,

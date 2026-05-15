@@ -2,7 +2,7 @@ import asyncio
 import math
 import random
 import time
-from contextlib import suppress
+from contextlib import asynccontextmanager, suppress
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -32,7 +32,22 @@ class AvatarServerState:
 
 
 state = AvatarServerState()
-app = FastAPI(title="Clawface Avatar Backend")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    _app.state.stream_task = asyncio.create_task(lip_sync_stream())
+    try:
+        yield
+    finally:
+        stream_task = getattr(_app.state, "stream_task", None)
+        if stream_task:
+            stream_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await stream_task
+
+
+app = FastAPI(title="Clawface Avatar Backend", lifespan=lifespan)
 
 
 def mock_amplitude(timestamp: float) -> float:
@@ -66,20 +81,6 @@ async def lip_sync_stream() -> None:
         }
         await broadcast(payload)
         await asyncio.sleep(FRAME_INTERVAL_SECONDS)
-
-
-@app.on_event("startup")
-async def startup() -> None:
-    app.state.stream_task = asyncio.create_task(lip_sync_stream())
-
-
-@app.on_event("shutdown")
-async def shutdown() -> None:
-    stream_task = getattr(app.state, "stream_task", None)
-    if stream_task:
-        stream_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await stream_task
 
 
 @app.websocket("/ws")

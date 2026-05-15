@@ -1,7 +1,7 @@
 extends Node2D
 
 @onready var status_label: Label = $CanvasLayer/StatusLabel
-@onready var avatar: Node2D = $Avatar
+@onready var avatar = $Avatar
 
 var socket := WebSocketPeer.new()
 var connected := false
@@ -25,4 +25,4 @@ func _process(_delta: float) -> void:
     while state == WebSocketPeer.STATE_OPEN and socket.get_available_packet_count() > 0:
         var payload := JSON.parse_string(socket.get_packet().get_string_from_utf8())
         if payload is Dictionary:
-            avatar.call("apply_avatar_payload", payload)
+            avatar.apply_avatar_payload(payload)
