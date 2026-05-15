@@ -19,6 +19,8 @@ curl -X POST http://127.0.0.1:8000/trigger_emotion \
   -d '{"emotion":"begging"}'
 ```
 
+Supported emotions: `idle`, `begging`, `puzzled`
+
 ## Godot 4 Project
 
 The Godot frontend scaffold lives in `/godot` with:

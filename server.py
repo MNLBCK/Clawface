@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 TARGET_FPS = 60
 FRAME_INTERVAL_SECONDS = 1.0 / TARGET_FPS
+SUPPORTED_EMOTIONS = {"idle", "begging", "puzzled"}
 
 
 class EmotionTrigger(BaseModel):
@@ -102,9 +103,13 @@ async def trigger_emotion(trigger: EmotionTrigger) -> dict[str, str]:
     emotion = trigger.emotion.strip()
     if not emotion:
         raise HTTPException(status_code=400, detail="Emotion must not be empty")
+    if emotion not in SUPPORTED_EMOTIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported emotion '{emotion}'. Supported emotions: {sorted(SUPPORTED_EMOTIONS)}",
+        )
 
     await state.set_emotion(emotion)
-    await broadcast({"type": "action", "trigger": emotion})
     return {"status": "ok", "emotion": emotion}
 
 

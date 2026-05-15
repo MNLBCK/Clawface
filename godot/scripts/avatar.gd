@@ -20,12 +20,18 @@ const PUZZLED_TREMOR_SPEED := 12.0
 @onready var upper_eyelid_bone: Bone2D = $Skeleton2D/UpperEyelidBone
 @onready var lower_eyelid_bone: Bone2D = $Skeleton2D/LowerEyelidBone
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
+var animation_library: AnimationLibrary
 
 var current_emotion := "idle"
 var blink_timer := 0.0
 var puzzled_tremor_phase := 0.0
 
 func _ready() -> void:
+    animation_library = animation_player.get_animation_library("")
+    if animation_library == null:
+        animation_library = AnimationLibrary.new()
+        animation_player.add_animation_library("", animation_library)
+
     _ensure_animation("idle", Vector2(1.0, 1.0), DEFAULT_HEAD_POSITION, 0.0, 0.0, 0.0)
     _ensure_animation("begging", Vector2(1.0, 1.0), BEGGING_HEAD_POSITION, 4.0, 8.0, -6.0)
     _ensure_animation("puzzled", Vector2(1.0, 1.0), DEFAULT_HEAD_POSITION, 0.0, -10.0, 7.0)
@@ -90,14 +96,14 @@ func _apply_emotion_pose(emotion: String) -> void:
             puzzled_tremor_phase = 0.0
 
 func _ensure_animation(
-    name: String,
+    anim_name: String,
     body_scale: Vector2,
     head_position: Vector2,
     head_rotation: float,
     upper_eyelid_rotation: float,
     lower_eyelid_rotation: float
 ) -> void:
-    if animation_player.has_animation(name):
+    if animation_library.has_animation(anim_name):
         return
 
     var animation := Animation.new()
@@ -123,4 +129,4 @@ func _ensure_animation(
     animation.track_set_path(lower_eyelid_track, NodePath("Skeleton2D/LowerEyelidBone:rotation_degrees"))
     animation.track_insert_key(lower_eyelid_track, 0.0, lower_eyelid_rotation)
 
-    animation_player.add_animation(name, animation)
+    animation_library.add_animation(anim_name, animation)
