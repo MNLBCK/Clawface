@@ -15,7 +15,7 @@ Emotion trigger:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/trigger_emotion \
-  -H "content-type: application/json" \
+  -H "Content-Type: application/json" \
   -d '{"emotion":"begging"}'
 ```
 

@@ -45,7 +45,7 @@ func apply_avatar_payload(payload: Dictionary) -> void:
 
 func _process(delta: float) -> void:
     if current_emotion == "idle":
-        var pulse := 1.0 + 0.01 * sin(Time.get_ticks_msec() / IDLE_PULSE_PERIOD_MS)
+        var pulse := 1.0 + 0.01 * sin(float(Time.get_ticks_msec()) / IDLE_PULSE_PERIOD_MS)
         body.scale.y = pulse
         blink_timer -= delta
         if blink_timer <= 0.0:
