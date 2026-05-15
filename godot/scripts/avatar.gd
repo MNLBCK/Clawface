@@ -4,6 +4,10 @@ const MIN_MOUTH_SCALE_Y := 0.7
 const MAX_MOUTH_SCALE_Y := 1.6
 const DEFAULT_HEAD_POSITION := Vector2(0.0, -80.0)
 const BEGGING_HEAD_POSITION := Vector2(0.0, -72.0)
+const IDLE_PULSE_PERIOD_MS := 450.0
+const MIN_BLINK_INTERVAL := 1.6
+const MAX_BLINK_INTERVAL := 3.3
+const PUZZLED_TREMOR_DEGREES := 2.0
 
 @onready var body: Node2D = $Body
 @onready var head: Node2D = $Head
@@ -16,6 +20,7 @@ const BEGGING_HEAD_POSITION := Vector2(0.0, -72.0)
 
 var current_emotion := "idle"
 var blink_timer := 0.0
+var puzzled_tremor_phase := 0.0
 
 func _ready() -> void:
     _ensure_animation("idle", Vector2(1.0, 1.0), DEFAULT_HEAD_POSITION, 0.0, 0.0, 0.0)
@@ -40,21 +45,26 @@ func apply_avatar_payload(payload: Dictionary) -> void:
 
 func _process(delta: float) -> void:
     if current_emotion == "idle":
-        var pulse := 1.0 + 0.01 * sin(Time.get_ticks_msec() / 450.0)
+        var pulse := 1.0 + 0.01 * sin(Time.get_ticks_msec() / IDLE_PULSE_PERIOD_MS)
         body.scale.y = pulse
         blink_timer -= delta
         if blink_timer <= 0.0:
             upper_eyelid_bone.rotation_degrees = 10.0
             lower_eyelid_bone.rotation_degrees = -10.0
-            blink_timer = randf_range(1.6, 3.3)
+            blink_timer = randf_range(MIN_BLINK_INTERVAL, MAX_BLINK_INTERVAL)
         else:
             upper_eyelid_bone.rotation_degrees = lerp(upper_eyelid_bone.rotation_degrees, 0.0, 0.2)
             lower_eyelid_bone.rotation_degrees = lerp(lower_eyelid_bone.rotation_degrees, 0.0, 0.2)
+    elif current_emotion == "puzzled":
+        puzzled_tremor_phase += delta * 12.0
 
 func _apply_lip_sync(amplitude: float) -> void:
     mouth_polygon.scale.y = lerp(MIN_MOUTH_SCALE_Y, MAX_MOUTH_SCALE_Y, amplitude)
-    mouth_bone_left.rotation_degrees = lerp(-6.0, -25.0, amplitude)
-    mouth_bone_right.rotation_degrees = lerp(6.0, 25.0, amplitude)
+    var tremor := 0.0
+    if current_emotion == "puzzled":
+        tremor = sin(puzzled_tremor_phase) * PUZZLED_TREMOR_DEGREES
+    mouth_bone_left.rotation_degrees = lerp(-6.0, -25.0, amplitude) + tremor
+    mouth_bone_right.rotation_degrees = lerp(6.0, 25.0, amplitude) - tremor
 
 func _apply_emotion_pose(emotion: String) -> void:
     body.scale = Vector2.ONE
@@ -74,8 +84,7 @@ func _apply_emotion_pose(emotion: String) -> void:
         "puzzled":
             upper_eyelid_bone.rotation_degrees = -10.0
             lower_eyelid_bone.rotation_degrees = 7.0
-            mouth_bone_left.rotation_degrees = randf_range(-2.0, 2.0)
-            mouth_bone_right.rotation_degrees = randf_range(-2.0, 2.0)
+            puzzled_tremor_phase = 0.0
 
 func _ensure_animation(
     name: String,
