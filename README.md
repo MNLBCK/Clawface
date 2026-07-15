@@ -1,5 +1,7 @@
 # Macht-Es-Euch-Schön – Wohnungsplaner
 
+Repository: https://github.com/MNLBCK/macht-es-euch-schoen
+
 Cloudbasierte, responsive Web-App zur gemeinsamen Planung und Priorisierung von Arbeiten in einer Wohnung. Dieser Stand setzt bewusst nur den ersten Schritt um: Datenmodell, Sicherheitsrichtlinien und ein klickbares App-Grundgerüst mit Beispieldaten.
 
 ## MVP-Startumfang dieses Commits
@@ -9,7 +11,7 @@ Cloudbasierte, responsive Web-App zur gemeinsamen Planung und Priorisierung von 
 - Klickbares Dashboard mit Beispielwohnung, Räumen, Aufgaben, Quick-Win-Hinweisen, Prioritäts-Spider-Chart und Einkaufsliste.
 - Fachlogik für Prioritätswert, Begründung, Aufwandsklassen und Quick-Win-Erkennung.
 - Progressive-Web-App-Manifest und einfacher Service Worker für Offline-Shell-Caching.
-- Supabase SQL-Migration mit Tabellen, Enums, RLS-Policies und Schutz gegen zyklische Aufgabenabhängigkeiten.
+- Supabase SQL-Migration mit Tabellen, Enums, RLS-Policies, automatischer Owner-Mitgliedschaft und Schutz gegen zyklische Aufgabenabhängigkeiten.
 - Vitest-Unit-Tests für Prioritäts- und Quick-Win-Logik sowie ein Playwright-Smoke-Test.
 
 ## Lokaler Start
@@ -31,6 +33,7 @@ Die initiale Migration liegt unter `supabase/migrations/202607150001_initial_sch
 - Rollen `owner` und `member`.
 - Generierten Prioritätswert in PostgreSQL.
 - Trigger gegen zyklische Aufgabenabhängigkeiten.
+- Trigger, der den Ersteller eines Haushalts direkt als `owner` in `household_members` einträgt.
 - Soft-Delete-Feld für Haushalte.
 
 ## Beispielwohnung im Entwicklungsmodus
