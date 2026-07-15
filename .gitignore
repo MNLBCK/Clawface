@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Wohnungsplaner web app
+node_modules
+.next
+out
+.env*.local
+coverage
+playwright-report
+test-results
+.DS_Store
