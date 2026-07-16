@@ -13,7 +13,7 @@ from typing import Any, AsyncIterator
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from .audio import pcm16_amplitude
-from .protocol import AvatarEvent, emotion_event, lip_sync_event
+from .protocol import AvatarEvent, emotion_event, hello_event, lip_sync_event
 
 
 class ConnectionHub:
@@ -68,6 +68,7 @@ def health() -> dict[str, str]:
 async def avatar_socket(websocket: WebSocket) -> None:
     await hub.connect(websocket)
     try:
+        await websocket.send_json(hello_event().to_jsonable())
         await websocket.send_json(emotion_event("neutral").to_jsonable())
         while True:
             raw = await websocket.receive_text()
