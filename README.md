@@ -18,6 +18,8 @@ pip install -e .[dev]
 clawface-backend
 ```
 
+The backend starts in **MVP demo mode**: `clawface-backend` launches a FastAPI lifecycle task that emits synthetic PCM16-backed `lip_sync` events at startup, so the Godot scene shows mouth movement immediately after connecting. It does **not** capture a real microphone yet; a future audio source can feed PCM16 frames into the same backend lip-sync conversion path.
+
 The backend exposes:
 
 - `GET /health` for process health checks.
