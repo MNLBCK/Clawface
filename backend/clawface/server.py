@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import asynccontextmanager
 import json
 import math
+import struct
 import time
-from typing import Any
+from typing import Any, AsyncIterator
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from .protocol import emotion_event, lip_sync_event
-
-app = FastAPI(title="Clawface Avatar Backend", version="0.1.0")
+from .audio import pcm16_amplitude
+from .protocol import AvatarEvent, emotion_event, lip_sync_event
 
 
 class ConnectionHub:
@@ -40,6 +41,24 @@ class ConnectionHub:
 hub = ConnectionHub()
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Start and stop background lip-sync producers with the API process."""
+
+    pulse_task = asyncio.create_task(demo_pulse())
+    try:
+        yield
+    finally:
+        pulse_task.cancel()
+        try:
+            await pulse_task
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(title="Clawface Avatar Backend", version="0.1.0", lifespan=lifespan)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -61,13 +80,31 @@ async def avatar_socket(websocket: WebSocket) -> None:
         hub.disconnect(websocket)
 
 
+def lip_sync_event_from_pcm16(pcm: bytes) -> AvatarEvent:
+    """Translate a PCM16 audio frame into the avatar lip-sync protocol event."""
+
+    frame = pcm16_amplitude(pcm)
+    return lip_sync_event(frame.amplitude, frame.mouth_open)
+
+
+def demo_pcm16_frame(amplitude: float, *, sample_count: int = 160) -> bytes:
+    """Create a short synthetic PCM16 frame for the MVP demo lip-sync source."""
+
+    peak = int(max(0.0, min(1.0, amplitude)) * 32767)
+    if peak == 0:
+        return b"\x00\x00" * sample_count
+    return b"".join(
+        struct.pack("<h", int(math.sin(index / sample_count * math.tau) * peak)) for index in range(sample_count)
+    )
+
+
 async def demo_pulse() -> None:
-    """Emit synthetic lip-sync frames for frontend development without a microphone."""
+    """Emit synthetic PCM-backed lip-sync frames for development without a microphone."""
 
     while True:
         phase = time.monotonic() * 6.0
         amplitude = (math.sin(phase) + 1.0) / 2.0
-        await hub.broadcast(lip_sync_event(amplitude, math.sqrt(amplitude)).to_jsonable())
+        await hub.broadcast(lip_sync_event_from_pcm16(demo_pcm16_frame(amplitude)).to_jsonable())
         await asyncio.sleep(1 / 30)
 
 
