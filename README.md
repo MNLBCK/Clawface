@@ -9,6 +9,18 @@ Real-time 2D avatar system for AI agents. A Python backend extracts audio amplit
 - `godot/` — Godot 4 project with a minimal avatar stage and WebSocket controller.
 - `docs/protocol.md` — JSON event protocol between backend and frontend.
 
+## MVP Definition
+
+Clawface reaches MVP status when all of the following are true:
+
+1. A fresh user can install and start the backend with at most two shell commands.
+2. `GET /health` returns `{"status": "ok"}`.
+3. Godot 4 can open the main scene and automatically connect to `ws://127.0.0.1:8765/ws/avatar`.
+4. The scene displays a visible connection status.
+5. The mouth moves in demo mode without requiring a microphone.
+6. Emotion events visibly change the avatar expression or at least the status label.
+7. The protocol documentation includes all events, payloads, and a complete coupling example.
+
 
 ## MVP Quick Start
 
