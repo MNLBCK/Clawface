@@ -9,6 +9,48 @@ Real-time 2D avatar system for AI agents. A Python backend extracts audio amplit
 - `godot/` — Godot 4 project with a minimal avatar stage and WebSocket controller.
 - `docs/protocol.md` — JSON event protocol between backend and frontend.
 
+
+## MVP Quick Start
+
+The MVP is intentionally **local-first**: setup and runtime do not require cloud services, hosted APIs, external accounts, or login flows. Run the backend and Godot frontend on the same machine for the default configuration.
+
+### Requirements
+
+- Python **3.11 or newer** (the package declares `requires-python = ">=3.11"`).
+- Godot **4.x** for opening and running the frontend project.
+
+### 1. Setup backend
+
+```bash
+./scripts/setup_backend.sh
+```
+
+This creates `.venv` in the repository root and installs the backend in editable mode with development dependencies via `pip install -e '.[dev]'`.
+
+### 2. Start backend
+
+```bash
+./scripts/run_backend.sh
+```
+
+The backend listens locally on `127.0.0.1:8765` by default.
+
+### 3. Start Godot
+
+Open `godot/project.godot` with Godot 4.x and run the main scene. The default scene connects to the local backend WebSocket.
+
+### Expected endpoints
+
+- Healthcheck: `GET http://127.0.0.1:8765/health`
+- Avatar WebSocket: `ws://127.0.0.1:8765/ws/avatar`
+
+### Troubleshooting
+
+- **Port 8765 already in use:** stop the process occupying `127.0.0.1:8765` and restart `./scripts/run_backend.sh`. On Linux/macOS, `lsof -i :8765` can help identify the process.
+- **Godot version mismatch:** use Godot **4.x**. Godot 3.x projects and APIs are not compatible with this frontend.
+- **Connection errors in Godot:** confirm the backend is running, verify `GET http://127.0.0.1:8765/health` returns a healthy response, and check that the Godot WebSocket URL is `ws://127.0.0.1:8765/ws/avatar`.
+- **Virtual environment missing:** run `./scripts/setup_backend.sh` before `./scripts/run_backend.sh`.
+
 ## Backend quick start
 
 ```bash
