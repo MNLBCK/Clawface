@@ -7,6 +7,7 @@ var _socket := WebSocketPeer.new()
 var _mouth_open := 0.0
 var _emotion := "neutral"
 var _connection_state := "disconnected"
+var _protocol_compatible := false
 var _reconnect_elapsed := 0.0
 const RECONNECT_INTERVAL := 3.0
 
@@ -27,6 +28,7 @@ func _process(delta: float) -> void:
 	_update_mouth()
 
 func _connect_websocket(state: String) -> void:
+	_protocol_compatible = false
 	_socket = WebSocketPeer.new()
 	var err := _socket.connect_to_url(websocket_url)
 	_reconnect_elapsed = 0.0
@@ -42,7 +44,10 @@ func _update_connection_state(delta: float) -> void:
 				_set_connection_state("connecting")
 		WebSocketPeer.STATE_OPEN:
 			_reconnect_elapsed = 0.0
-			_set_connection_state("connected")
+			if _protocol_compatible:
+				_set_connection_state("compatible/connected")
+			elif _connection_state != "incompatible":
+				_set_connection_state("connecting")
 		WebSocketPeer.STATE_CLOSING:
 			_set_connection_state("disconnected")
 		WebSocketPeer.STATE_CLOSED:
@@ -70,11 +75,24 @@ func _handle_message(raw: String) -> void:
 		return
 	var payload: Dictionary = parsed.get("payload", {})
 	match parsed.get("type", ""):
+		"hello":
+			_handle_hello(payload)
 		"lip_sync":
 			_mouth_open = clampf(float(payload.get("mouth_open", 0.0)), 0.0, 1.0)
 		"emotion":
 			_emotion = str(payload.get("emotion", "neutral"))
 			_update_status_label()
+
+func _handle_hello(payload: Dictionary) -> void:
+	var supported_events_variant = payload.get("supported_events", [])
+	var supported_events: Array = []
+	if typeof(supported_events_variant) == TYPE_ARRAY:
+		supported_events = supported_events_variant
+	_protocol_compatible = supported_events.has("lip_sync") and supported_events.has("emotion")
+	if _protocol_compatible:
+		_set_connection_state("compatible/connected")
+	else:
+		_set_connection_state("incompatible")
 
 func _update_mouth() -> void:
 	var half_width := 55.0
