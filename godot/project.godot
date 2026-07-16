@@ -1,0 +1,11 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+config/name="Clawface"
+run/main_scene="res://scenes/avatar_stage.tscn"
+config/features=PackedStringArray("4.2")
+
+[display]
+window/size/viewport_width=1024
+window/size/viewport_height=600

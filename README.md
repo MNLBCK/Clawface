@@ -1,2 +1,32 @@
 # Clawface
-Real-time 2D avatar system for AI agents. A Python backend extracts audio amplitude for lip-sync and sends emotion triggers via WebSockets to a Godot 4 frontend. Animates photorealistic characters using 2D mesh deformation on local displays (e.g. dedicated 7-inch kiosk)
+
+Real-time 2D avatar system for AI agents. A Python backend extracts audio amplitude for lip-sync and sends emotion triggers via WebSockets to a Godot 4 frontend. The frontend is intended to animate photorealistic characters with 2D mesh deformation on local displays such as a dedicated 7-inch kiosk.
+
+## Repository layout
+
+- `backend/clawface/` — FastAPI WebSocket backend and audio amplitude utilities.
+- `backend/tests/` — backend unit tests.
+- `godot/` — Godot 4 project with a minimal avatar stage and WebSocket controller.
+- `docs/protocol.md` — JSON event protocol between backend and frontend.
+
+## Backend quick start
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+clawface-backend
+```
+
+The backend exposes:
+
+- `GET /health` for process health checks.
+- `WS /ws/avatar` for lip-sync and emotion events.
+
+## Frontend quick start
+
+Open `godot/project.godot` with Godot 4 and run the main scene. The default scene connects to `ws://127.0.0.1:8765/ws/avatar` and updates a placeholder mouth mesh from incoming `lip_sync` messages.
+
+## Protocol
+
+See `docs/protocol.md` for the WebSocket envelope and event payloads.
