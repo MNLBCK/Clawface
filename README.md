@@ -39,6 +39,13 @@ The backend listens locally on `127.0.0.1:8765` by default.
 
 Open `godot/project.godot` with Godot 4.x and run the main scene. The default scene connects to the local backend WebSocket.
 
+
+### Koppelungsanleitung
+
+1. Backend mit `./scripts/run_backend.sh` starten.
+2. `godot/project.godot` in Godot 4.x öffnen und die Hauptszene starten.
+3. Im Avatar-Fenster den WebSocket-Status prüfen: Er sollte von `connecting` auf `connected` wechseln. Falls `disconnected` oder `reconnecting` angezeigt wird, läuft das Backend nicht oder die Godot-WebSocket-URL passt nicht zu `ws://127.0.0.1:8765/ws/avatar`.
+
 ### Expected endpoints
 
 - Healthcheck: `GET http://127.0.0.1:8765/health`
