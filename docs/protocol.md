@@ -16,6 +16,20 @@ The backend serves avatar events from `/ws/avatar`. Messages are JSON envelopes:
 - `lip_sync`: emitted at animation frame cadence. `amplitude` and `mouth_open` are normalized `0.0..1.0` floats.
 - `emotion`: switches the frontend expression state. Supported baseline emotions are `neutral`, `happy`, `sad`, `angry`, `surprised`, and `thinking`.
 
+## Client-to-server emotion messages
+
+Clients can request expression changes by sending the same `emotion` envelope shape the backend broadcasts. The `payload.emotion` value must be one of `neutral`, `happy`, `sad`, `angry`, `surprised`, or `thinking`; missing or unknown values fall back to `neutral`. `payload.intensity` is normalized to `0.0..1.0`.
+
+```json
+{
+  "type": "emotion",
+  "payload": {
+    "emotion": "happy",
+    "intensity": 0.8
+  }
+}
+```
+
 ### `hello` payload
 
 ```json

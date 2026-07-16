@@ -13,7 +13,14 @@ from typing import Any, AsyncIterator
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from .audio import pcm16_amplitude
-from .protocol import AvatarEvent, emotion_event, hello_event, lip_sync_event
+from .protocol import (
+    AvatarEvent,
+    emotion_event,
+    hello_event,
+    lip_sync_event,
+    validate_emotion,
+    validate_intensity,
+)
 
 
 class ConnectionHub:
@@ -74,9 +81,7 @@ async def avatar_socket(websocket: WebSocket) -> None:
             raw = await websocket.receive_text()
             data = json.loads(raw)
             if data.get("type") == "emotion":
-                await hub.broadcast(
-                    emotion_event(data.get("emotion", "neutral"), float(data.get("intensity", 1.0))).to_jsonable()
-                )
+                await hub.broadcast(incoming_emotion_event(data).to_jsonable())
     except WebSocketDisconnect:
         hub.disconnect(websocket)
 
@@ -86,6 +91,23 @@ def lip_sync_event_from_pcm16(pcm: bytes) -> AvatarEvent:
 
     frame = pcm16_amplitude(pcm)
     return lip_sync_event(frame.amplitude, frame.mouth_open)
+
+
+def incoming_emotion_event(message: dict[str, Any]) -> AvatarEvent:
+    """Normalize a client emotion message into the shared avatar event envelope.
+
+    The preferred client-to-server format mirrors outbound events:
+    {"type": "emotion", "payload": {"emotion": "happy", "intensity": 1.0}}.
+    Top-level emotion fields are still accepted for compatibility with earlier clients.
+    """
+
+    payload = message.get("payload")
+    if not isinstance(payload, dict):
+        payload = message
+
+    emotion = validate_emotion(payload.get("emotion"))
+    intensity = validate_intensity(payload.get("intensity", 1.0))
+    return emotion_event(emotion, intensity)
 
 
 def demo_pcm16_frame(amplitude: float, *, sample_count: int = 160) -> bytes:

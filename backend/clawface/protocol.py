@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 import time
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 Emotion = Literal["neutral", "happy", "sad", "angry", "surprised", "thinking"]
 ProtocolEventType = Literal["hello", "lip_sync", "emotion"]
 PROTOCOL_VERSION = "1.0"
 SERVER_NAME = "clawface-backend"
 SUPPORTED_EVENTS: tuple[ProtocolEventType, ...] = ("hello", "lip_sync", "emotion")
+ALLOWED_EMOTIONS: tuple[Emotion, ...] = ("neutral", "happy", "sad", "angry", "surprised", "thinking")
 
 
 @dataclass(frozen=True)
@@ -33,11 +34,30 @@ def lip_sync_event(amplitude: float, mouth_open: float) -> AvatarEvent:
     )
 
 
+def validate_emotion(value: Any, *, fallback: Emotion = "neutral") -> Emotion:
+    """Return a supported emotion, falling back for missing or unknown input."""
+
+    if isinstance(value, str) and value in ALLOWED_EMOTIONS:
+        return cast(Emotion, value)
+    return fallback
+
+
+def validate_intensity(value: Any, *, fallback: float = 1.0) -> float:
+    """Return an emotion intensity constrained to the normalized 0.0..1.0 range."""
+
+    try:
+        intensity = float(value)
+    except (TypeError, ValueError):
+        intensity = fallback
+    return max(0.0, min(1.0, intensity))
+
+
 def emotion_event(emotion: Emotion, intensity: float = 1.0) -> AvatarEvent:
+    intensity = validate_intensity(intensity)
     return AvatarEvent(
         type="emotion",
         timestamp=time.time(),
-        payload={"emotion": emotion, "intensity": max(0.0, min(1.0, intensity))},
+        payload={"emotion": emotion, "intensity": intensity},
     )
 
 
